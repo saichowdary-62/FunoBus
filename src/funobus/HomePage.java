@@ -11,6 +11,7 @@ public class HomePage extends JPanel {
     private static boolean isLoggedIn = false;
     private static String currentUser = null;
     private static int currentUserId = -1;
+    private static String currentUserRole = "user";
     
     public HomePage(JFrame frame) {
         this.parentFrame = frame;
@@ -88,6 +89,7 @@ public class HomePage extends JPanel {
             rightPanel.add(loginBtn);
             rightPanel.add(signupBtn);
         } else {
+            // My Bookings Button
             JButton bookingsBtn = new JButton("📋 My Bookings");
             bookingsBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
             bookingsBtn.setForeground(primaryColor);
@@ -103,6 +105,30 @@ public class HomePage extends JPanel {
                 parentFrame.repaint();
             });
             
+            rightPanel.add(bookingsBtn);
+            
+            // Admin Button (only for admin users)
+            System.out.println("Current user role: " + currentUserRole);
+            if (currentUserRole != null && currentUserRole.equals("admin")) {
+                JButton adminBtn = new JButton("👑 Admin Panel");
+                adminBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                adminBtn.setForeground(new Color(255, 193, 7));
+                adminBtn.setBackground(Color.WHITE);
+                adminBtn.setBorder(BorderFactory.createLineBorder(new Color(255, 193, 7), 1));
+                adminBtn.setFocusPainted(false);
+                adminBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                adminBtn.setPreferredSize(new Dimension(140, 40));
+                adminBtn.addActionListener(e -> {
+                    parentFrame.getContentPane().removeAll();
+                    parentFrame.add(new AdminPage(parentFrame));
+                    parentFrame.revalidate();
+                    parentFrame.repaint();
+                });
+                rightPanel.add(adminBtn);
+                System.out.println("Admin button added!");
+            }
+            
+            // Logout Button
             JButton logoutBtn = new JButton("Logout");
             logoutBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
             logoutBtn.setBackground(Color.RED);
@@ -115,10 +141,10 @@ public class HomePage extends JPanel {
                 isLoggedIn = false;
                 currentUser = null;
                 currentUserId = -1;
+                currentUserRole = "user";
                 refreshPage();
             });
             
-            rightPanel.add(bookingsBtn);
             rightPanel.add(logoutBtn);
         }
         
@@ -490,6 +516,12 @@ public class HomePage extends JPanel {
         currentUser = username;
     }
     
+    public static void setLoggedIn(boolean status, String username, String role) {
+        isLoggedIn = status;
+        currentUser = username;
+        currentUserRole = role;
+    }
+    
     public static boolean isLoggedIn() {
         return isLoggedIn;
     }
@@ -504,6 +536,14 @@ public class HomePage extends JPanel {
     
     public static void setCurrentUserId(int userId) {
         currentUserId = userId;
+    }
+    
+    public static String getCurrentUserRole() {
+        return currentUserRole;
+    }
+    
+    public static void setCurrentUserRole(String role) {
+        currentUserRole = role;
     }
     
     private void showLoginDialog() {
@@ -578,14 +618,15 @@ public class HomePage extends JPanel {
             User user = UserDAO.loginUser(email, pass);
             
             if (user != null) {
-                setLoggedIn(true, user.getFullName().split(" ")[0]);
+                setLoggedIn(true, user.getFullName().split(" ")[0], user.getRole());
                 setCurrentUserId(user.getUserId());
+                setCurrentUserRole(user.getRole());
                 JOptionPane.showMessageDialog(dialog, "✅ Login successful! Welcome " + user.getFullName() + "!");
                 dialog.dispose();
                 refreshPage();
             } else {
                 JOptionPane.showMessageDialog(dialog, 
-                    "❌ Invalid email or password!\n\nTry: john@email.com / john123", 
+                    "❌ Invalid email or password!\n\nTry:\njohn@email.com / john123\namar@gmail.com / 123456", 
                     "Login Failed", 
                     JOptionPane.ERROR_MESSAGE);
             }
@@ -702,7 +743,7 @@ public class HomePage extends JPanel {
             if (registered) {
                 User user = UserDAO.loginUser(email, pass);
                 if (user != null) {
-                    setLoggedIn(true, user.getFullName().split(" ")[0]);
+                    setLoggedIn(true, user.getFullName().split(" ")[0], user.getRole());
                     setCurrentUserId(user.getUserId());
                 }
                 JOptionPane.showMessageDialog(dialog, 

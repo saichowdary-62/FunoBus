@@ -5,7 +5,7 @@ import java.sql.*;
 public class UserDAO {
     
     public static boolean registerUser(User user) {
-        String sql = "INSERT INTO users (full_name, email, phone, password) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO users (full_name, email, phone, password, role) VALUES (?, ?, ?, ?, 'user')";
         
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -39,6 +39,8 @@ public class UserDAO {
                 user.setFullName(rs.getString("full_name"));
                 user.setEmail(rs.getString("email"));
                 user.setPhone(rs.getString("phone"));
+                user.setRole(rs.getString("role"));
+                System.out.println("User role from DB: " + user.getRole());
                 return user;
             }
         } catch (SQLException e) {
